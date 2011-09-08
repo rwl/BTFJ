@@ -36,17 +36,17 @@ public class Dbtf {
 	 * macro.
 	 */
 
-	protected static int BTF_FLIP(int j)
+	public static int BTF_FLIP(int j)
 	{
 		return (-(j)-2) ;
 	}
 
-	protected static boolean BTF_ISFLIPPED(int j)
+	public static boolean BTF_ISFLIPPED(int j)
 	{
 		return ((j) < -1) ;
 	}
 
-	protected static int BTF_UNFLIP(int j)
+	public static int BTF_UNFLIP(int j)
 	{
 		return ((BTF_ISFLIPPED (j)) ? BTF_FLIP (j) : (j)) ;
 	}
@@ -59,25 +59,17 @@ public class Dbtf {
 	 * As an example, to test if the version you are using is 1.2 or later:
 	 *
 	 *      if (BTF_VERSION >= BTF_VERSION_CODE (1,2)) ...
-	 *
-	 * This also works during compile-time:
-	 *
-	 *      #if (BTF >= BTF_VERSION_CODE (1,2))
-	 *          printf ("This is version 1.2 or later\n") ;
-	 *      #else
-	 *          printf ("This is an early version\n") ;
-	 *      #endif
 	 */
 
-	protected static final String BTF_DATE = "Jan 25, 2011" ;
-	protected static int BTF_VERSION_CODE(int main, int sub)
+	public static final String BTF_DATE = "Jan 25, 2011" ;
+	public static int BTF_VERSION_CODE(int main, int sub)
 	{
 		return ((main) * 1000 + (sub));
 	}
-	protected static final int BTF_MAIN_VERSION = 1 ;
-	protected static final int BTF_SUB_VERSION = 1 ;
-	protected static final int BTF_SUBSUB_VERSION = 2 ;
-	protected static final int BTF_VERSION = BTF_VERSION_CODE(BTF_MAIN_VERSION,
+	public static final int BTF_MAIN_VERSION = 1 ;
+	public static final int BTF_SUB_VERSION = 1 ;
+	public static final int BTF_SUBSUB_VERSION = 2 ;
+	public static final int BTF_VERSION = BTF_VERSION_CODE(BTF_MAIN_VERSION,
 			BTF_SUB_VERSION) ;
 
 }
