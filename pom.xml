@@ -3,4 +3,11 @@
   <groupId>edu.ufl.cise</groupId>
   <artifactId>BTFJ</artifactId>
   <version>1.1.2-SNAPSHOT</version>
+  <dependencies>
+  	<dependency>
+  		<groupId>junit</groupId>
+  		<artifactId>junit</artifactId>
+  		<version>3.8.2</version>
+  	</dependency>
+  </dependencies>
 </project>
