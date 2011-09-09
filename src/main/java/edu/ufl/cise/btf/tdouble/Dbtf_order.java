@@ -86,83 +86,85 @@ public class Dbtf_order extends Dbtf_internal {
 		    double work, int[] P, int[] Q, int[] R, int nmatch, int[] Work)
 	{
 		int[] Flag ;
-	    int nblocks, i, j, nbadcol ;
+		int nblocks, i, j, nbadcol ;
 
-	    /* ------------------------------------------------------------------ */
-	    /* compute the maximum matching */
-	    /* ------------------------------------------------------------------ */
+		/* ------------------------------------------------------------------ */
+		/* compute the maximum matching */
+		/* ------------------------------------------------------------------ */
 
-	    /* if maxwork > 0, then a maximum matching might not be found */
+		/* if maxwork > 0, then a maximum matching might not be found */
 
-	    nmatch = Dbtf_maxtrans.btf_maxtrans (n, n, Ap, Ai, maxwork, work, Q,
-	    		Work) ;
+		nmatch = Dbtf_maxtrans.btf_maxtrans (n, n, Ap, Ai, maxwork, work, Q,
+				Work) ;
 
-	    /* ------------------------------------------------------------------ */
-	    /* complete permutation if the matrix is structurally singular */
-	    /* ------------------------------------------------------------------ */
+		/* ------------------------------------------------------------------ */
+		/* complete permutation if the matrix is structurally singular */
+		/* ------------------------------------------------------------------ */
 
-	    /* Since the matrix is square, ensure BTF_UNFLIP(Q[0..n-1]) is a
-	     * permutation of the columns of A so that A has as many nonzeros on the
-	     * diagonal as possible.
-	     */
+		/* Since the matrix is square, ensure BTF_UNFLIP(Q[0..n-1]) is a
+		 * permutation of the columns of A so that A has as many nonzeros on the
+		 * diagonal as possible.
+		 */
 
-	    if (nmatch < n)
-	    {
-	        /* get a size-n work array */
-	        Flag = Work + n ;
-	        for (j = 0 ; j < n ; j++)
-	        {
-	            Flag [j] = 0 ;
-	        }
+		if (nmatch < n)
+		{
+			/* get a size-n work array */
+			//Flag = Work + n ;
+			Flag = new int [n] ;
 
-	        /* flag all matched columns */
-	        for (i = 0 ; i < n ; i++)
-	        {
-	            j = Q [i] ;
-	            if (j != EMPTY)
-	            {
-	                /* row i and column j are matched to each other */
-	                Flag [j] = 1 ;
-	            }
-	        }
+			for (j = 0 ; j < n ; j++)
+			{
+				Flag [j] = 0 ;
+			}
 
-	        /* make a list of all unmatched columns, in Work [0..nbadcol-1]  */
-	        nbadcol = 0 ;
-	        for (j = n-1 ; j >= 0 ; j--)
-	        {
-	            if (!(Flag [j] != 0))
-	            {
-	                /* j is matched to nobody */
-	                Work [nbadcol++] = j ;
-	            }
-	        }
-	        ASSERT (nmatch + nbadcol == n) ;
+			/* flag all matched columns */
+			for (i = 0 ; i < n ; i++)
+			{
+				j = Q [i] ;
+				if (j != EMPTY)
+				{
+					/* row i and column j are matched to each other */
+					Flag [j] = 1 ;
+				}
+			}
 
-	        /* make an assignment for each unmatched row */
-	        for (i = 0 ; i < n ; i++)
-	        {
-	            if (Q [i] == EMPTY && nbadcol > 0)
-	            {
-	                /* get an unmatched column j */
-	                j = Work [--nbadcol] ;
-	                /* assign j to row i and flag the entry by "flipping" it */
-	                Q [i] = BTF_FLIP (j) ;
-	            }
-	        }
-	    }
+			/* make a list of all unmatched columns, in Work [0..nbadcol-1]  */
+			nbadcol = 0 ;
+			for (j = n-1 ; j >= 0 ; j--)
+			{
+				if (!(Flag [j] != 0))
+				{
+					/* j is matched to nobody */
+					Work [nbadcol++] = j ;
+				}
+			}
+			ASSERT (nmatch + nbadcol == n) ;
 
-	    /* The permutation of a square matrix can be recovered as follows: Row i is
-	     * matched with column j, where j = BTF_UNFLIP (Q [i]) and where j
-	     * will always be in the valid range 0 to n-1.  The entry A(i,j) is zero
-	     * if BTF_ISFLIPPED (Q [i]) is true, and nonzero otherwise.  nmatch
-	     * is the number of entries in the Q array that are non-negative. */
+			/* make an assignment for each unmatched row */
+			for (i = 0 ; i < n ; i++)
+			{
+				if (Q [i] == EMPTY && nbadcol > 0)
+				{
+					/* get an unmatched column j */
+					j = Work [--nbadcol] ;
+					/* assign j to row i and flag the entry by "flipping" it */
+					Q [i] = BTF_FLIP (j) ;
+				}
+			}
+		}
 
-	    /* ------------------------------------------------------------------ */
-	    /* find the strongly connected components */
-	    /* ------------------------------------------------------------------ */
+		/* The permutation of a square matrix can be recovered as follows: Row i is
+		 * matched with column j, where j = BTF_UNFLIP (Q [i]) and where j
+		 * will always be in the valid range 0 to n-1.  The entry A(i,j) is zero
+		 * if BTF_ISFLIPPED (Q [i]) is true, and nonzero otherwise.  nmatch
+		 * is the number of entries in the Q array that are non-negative. */
 
-	    nblocks = Dbtf_strongcomp.btf_strongcomp (n, Ap, Ai, Q, P, R, Work) ;
-	    return (nblocks) ;
+		/* ------------------------------------------------------------------ */
+		/* find the strongly connected components */
+		/* ------------------------------------------------------------------ */
+
+		nblocks = Dbtf_strongcomp.btf_strongcomp (n, Ap, Ai, Q, P, R, Work) ;
+		return (nblocks) ;
 	}
 
 }

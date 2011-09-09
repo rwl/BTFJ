@@ -161,145 +161,145 @@ public class Dbtf_maxtrans extends Dbtf_internal {
 		    double work, double maxwork)
 	{
 		/* local variables, but "global" to all DFS levels: */
-	    int found ; /* true if match found.  */
-	    int head ;  /* top of stack */
+		int found ; /* true if match found.  */
+		int head ;  /* top of stack */
 
-	    /* variables that are purely local to any one DFS level: */
-	    int j2 ;    /* the next DFS goes to node j2 */
-	    int pend ;  /* one past the end of the adjacency list for node j */
-	    int pstart ;
-	    int quick ;
+		/* variables that are purely local to any one DFS level: */
+		int j2 ;    /* the next DFS goes to node j2 */
+		int pend ;  /* one past the end of the adjacency list for node j */
+		int pstart ;
+		int quick ;
 
-	    /* variables that need to be pushed then popped from the stack: */
-	    int i ;     /* the row tentatively matched to i if DFS successful */
-	    int j ;     /* the DFS is at the current node j */
-	    int p ;     /* current index into the adj. list for node j */
-	    /* the variables i, j, and p are stacked in Istack, Jstack, and Pstack */
+		/* variables that need to be pushed then popped from the stack: */
+		int i ;     /* the row tentatively matched to i if DFS successful */
+		int j ;     /* the DFS is at the current node j */
+		int p ;     /* current index into the adj. list for node j */
+		/* the variables i, j, and p are stacked in Istack, Jstack, and Pstack */
 
-	    quick = (maxwork > 0) ? 1 : 0 ;
+		quick = (maxwork > 0) ? 1 : 0 ;
 
-	    /* start a DFS to find a match for column k */
-	    found = FALSE ;
-	    i = EMPTY ;
-	    head = 0 ;
-	    Jstack [0] = k ;
-	    ASSERT (Flag [k] != k) ;
+		/* start a DFS to find a match for column k */
+		found = FALSE ;
+		i = EMPTY ;
+		head = 0 ;
+		Jstack [0] = k ;
+		ASSERT (Flag [k] != k) ;
 
-	    while (head >= 0)
-	    {
-	        j = Jstack [head] ;
-	        pend = Ap [j+1] ;
+		while (head >= 0)
+		{
+			j = Jstack [head] ;
+			pend = Ap [j+1] ;
 
-	        if (Flag [j] != k)          /* a node is not yet visited */
-	        {
+			if (Flag [j] != k)          /* a node is not yet visited */
+			{
 
-	            /* ---------------------------------------------------------- */
-	            /* prework for node j */
-	            /* ---------------------------------------------------------- */
+				/* ---------------------------------------------------------- */
+				/* prework for node j */
+				/* ---------------------------------------------------------- */
 
-	            /* first time that j has been visited */
-	            Flag [j] = k ;
-	            /* cheap assignment: find the next unmatched row in col j.  This
-	             * loop takes at most O(nnz(A)) time for the sum total of all
-	             * calls to augment. */
-	            for (p = Cheap [j] ; p < pend && !(found != 0); p++)
-	            {
-	                i = Ai [p] ;
-	                found = (Match [i] == EMPTY) ? 1 : 0 ;
-	            }
-	            Cheap [j] = p ;
+				/* first time that j has been visited */
+				Flag [j] = k ;
+				/* cheap assignment: find the next unmatched row in col j.  This
+				 * loop takes at most O(nnz(A)) time for the sum total of all
+				 * calls to augment. */
+				for (p = Cheap [j] ; p < pend && !(found != 0); p++)
+				{
+					i = Ai [p] ;
+					found = (Match [i] == EMPTY) ? 1 : 0 ;
+				}
+				Cheap [j] = p ;
 
-	            /* ---------------------------------------------------------- */
+				/* ---------------------------------------------------------- */
 
-	            /* prepare for DFS */
-	            if (found != 0)
-	            {
-	                /* end of augmenting path, column j matched with row i */
-	                Istack [head] = i ;
-	                break ;
-	            }
-	            /* set Pstack [head] to the first entry in column j to scan */
-	            Pstack [head] = Ap [j] ;
-	        }
+				/* prepare for DFS */
+				if (found != 0)
+				{
+					/* end of augmenting path, column j matched with row i */
+					Istack [head] = i ;
+					break ;
+				}
+				/* set Pstack [head] to the first entry in column j to scan */
+				Pstack [head] = Ap [j] ;
+			}
 
-	        /* -------------------------------------------------------------- */
-	        /* quick return if too much work done */
-	        /* -------------------------------------------------------------- */
+			/* -------------------------------------------------------------- */
+			/* quick return if too much work done */
+			/* -------------------------------------------------------------- */
 
-	        if (quick != 0 && work > maxwork)
-	        {
-	            /* too much work has been performed; abort the search */
-	            return (EMPTY) ;
-	        }
+			if (quick != 0 && work > maxwork)
+			{
+				/* too much work has been performed; abort the search */
+				return (EMPTY) ;
+			}
 
-	        /* -------------------------------------------------------------- */
-	        /* DFS for nodes adjacent to j */
-	        /* -------------------------------------------------------------- */
+			/* -------------------------------------------------------------- */
+			/* DFS for nodes adjacent to j */
+			/* -------------------------------------------------------------- */
 
-	        /* If cheap assignment not made, continue the depth-first search.  All
-	         * rows in column j are already matched.  Add the adjacent nodes to the
-	         * stack by iterating through until finding another non-visited node.
-	         *
-	         * It is the following loop that can force maxtrans to take
-	         * O(n*nnz(A)) time. */
+			/* If cheap assignment not made, continue the depth-first search.  All
+			 * rows in column j are already matched.  Add the adjacent nodes to the
+			 * stack by iterating through until finding another non-visited node.
+			 *
+			 * It is the following loop that can force maxtrans to take
+			 * O(n*nnz(A)) time. */
 
-	        pstart = Pstack [head] ;
-	        for (p = pstart ; p < pend ; p++)
-	        {
-	            i = Ai [p] ;
-	            j2 = Match [i] ;
-	            ASSERT (j2 != EMPTY) ;
-	            if (Flag [j2] != k)
-	            {
-	                /* Node j2 is not yet visited, start a depth-first search on
-	                 * node j2.  Keep track of where we left off in the scan of adj
-	                 * list of node j so we can restart j where we left off. */
-	                Pstack [head] = p + 1 ;
-	                /* Push j2 onto the stack and immediately break so we can
-	                 * recurse on node j2.  Also keep track of row i which (if this
-	                 * search for an augmenting path works) will be matched with the
-	                 * current node j. */
-	                Istack [head] = i ;
-	                Jstack [++head] = j2 ;
-	                break ;
-	            }
-	        }
+			pstart = Pstack [head] ;
+			for (p = pstart ; p < pend ; p++)
+			{
+				i = Ai [p] ;
+				j2 = Match [i] ;
+				ASSERT (j2 != EMPTY) ;
+				if (Flag [j2] != k)
+				{
+					/* Node j2 is not yet visited, start a depth-first search on
+					 * node j2.  Keep track of where we left off in the scan of adj
+					 * list of node j so we can restart j where we left off. */
+					Pstack [head] = p + 1 ;
+					/* Push j2 onto the stack and immediately break so we can
+					 * recurse on node j2.  Also keep track of row i which (if this
+					 * search for an augmenting path works) will be matched with the
+					 * current node j. */
+					Istack [head] = i ;
+					Jstack [++head] = j2 ;
+					break ;
+				}
+			}
 
-	        /* -------------------------------------------------------------- */
-	        /* determine how much work was just performed */
-	        /* -------------------------------------------------------------- */
+			/* -------------------------------------------------------------- */
+			/* determine how much work was just performed */
+			/* -------------------------------------------------------------- */
 
-	        work += (p - pstart + 1) ;
+			work += (p - pstart + 1) ;
 
-	        /* -------------------------------------------------------------- */
-	        /* node j is done, but the postwork is postponed - see below */
-	        /* -------------------------------------------------------------- */
+			/* -------------------------------------------------------------- */
+			/* node j is done, but the postwork is postponed - see below */
+			/* -------------------------------------------------------------- */
 
-	        if (p == pend)
-	        {
-	            /* If all adjacent nodes of j are already visited, pop j from
-	             * stack and continue.  We failed to find a match. */
-	            head-- ;
-	        }
-	    }
+			if (p == pend)
+			{
+				/* If all adjacent nodes of j are already visited, pop j from
+				 * stack and continue.  We failed to find a match. */
+				head-- ;
+			}
+		}
 
-	    /* postwork for all nodes j in the stack */
-	    /* unwind the path and make the corresponding matches */
-	    if (found != 0)
-	    {
-	        for (p = head ; p >= 0 ; p--)
-	        {
-	            j = Jstack [p] ;
-	            i = Istack [p] ;
+		/* postwork for all nodes j in the stack */
+		/* unwind the path and make the corresponding matches */
+		if (found != 0)
+		{
+			for (p = head ; p >= 0 ; p--)
+			{
+				j = Jstack [p] ;
+				i = Istack [p] ;
 
-	            /* ---------------------------------------------------------- */
-	            /* postwork for node j */
-	            /* ---------------------------------------------------------- */
-	            /* if found, match row i with column j */
-	            Match [i] = j ;
-	        }
-	    }
-	    return (found) ;
+				/* ---------------------------------------------------------- */
+				/* postwork for node j */
+				/* ---------------------------------------------------------- */
+				/* if found, match row i with column j */
+				Match [i] = j ;
+			}
+		}
+		return (found) ;
 	}
 
 	/**
@@ -388,76 +388,81 @@ public class Dbtf_maxtrans extends Dbtf_internal {
 		    double maxwork, double work, int[] Match, int[] Work)
 	{
 		int[] Cheap, Flag, Istack, Jstack, Pstack ;
-	    int i, j, k, nmatch, work_limit_reached, result ;
+		int i, j, k, nmatch, work_limit_reached, result ;
 
-	    /* ------------------------------------------------------------------ */
-	    /* get workspace and initialize */
-	    /* ------------------------------------------------------------------ */
+		/* ------------------------------------------------------------------ */
+		/* get workspace and initialize */
+		/* ------------------------------------------------------------------ */
 
-	    Cheap  = Work ; Work += ncol ;
-	    Flag   = Work ; Work += ncol ;
+		//Cheap  = Work ; Work += ncol ;
+		Cheap = new int [ncol] ;
+		//Flag   = Work ; Work += ncol ;
+		Flag = new int [ncol] ;
 
-	    /* stack for non-recursive depth-first search in augment function */
-	    Istack = Work ; Work += ncol ;
-	    Jstack = Work ; Work += ncol ;
-	    Pstack = Work ;
+		/* stack for non-recursive depth-first search in augment function */
+		//Istack = Work ; Work += ncol ;
+		Istack = new int [ncol] ;
+		//Jstack = Work ; Work += ncol ;
+		Jstack = new int [ncol] ;
+		//Pstack = Work ;
+		Pstack = new int [ncol] ;
 
-	    /* in column j, rows Ai [Ap [j] .. Cheap [j]-1] are known to be matched */
-	    for (j = 0 ; j < ncol ; j++)
-	    {
-	        Cheap [j] = Ap [j] ;
-	        Flag [j] = EMPTY ;
-	    }
+		/* in column j, rows Ai [Ap [j] .. Cheap [j]-1] are known to be matched */
+		for (j = 0 ; j < ncol ; j++)
+		{
+			Cheap [j] = Ap [j] ;
+			Flag [j] = EMPTY ;
+		}
 
-	    /* all rows and columns are currently unmatched */
-	    for (i = 0 ; i < nrow ; i++)
-	    {
-	        Match [i] = EMPTY ;
-	    }
+		/* all rows and columns are currently unmatched */
+		for (i = 0 ; i < nrow ; i++)
+		{
+			Match [i] = EMPTY ;
+		}
 
-	    if (maxwork > 0)
-	    {
-	        maxwork *= Ap [ncol] ;
-	    }
-	    work = 0 ;
+		if (maxwork > 0)
+		{
+			maxwork *= Ap [ncol] ;
+		}
+		work = 0 ;
 
-	    /* ------------------------------------------------------------------ */
-	    /* find a matching row for each column k */
-	    /* ------------------------------------------------------------------ */
+		/* ------------------------------------------------------------------ */
+		/* find a matching row for each column k */
+		/* ------------------------------------------------------------------ */
 
-	    nmatch = 0 ;
-	    work_limit_reached = FALSE ;
-	    for (k = 0 ; k < ncol ; k++)
-	    {
-	        /* find an augmenting path to match some row i to column k */
-	        result = augment (k, Ap, Ai, Match, Cheap, Flag, Istack, Jstack, Pstack,
-	            work, maxwork) ;
-	        if (result == TRUE)
-	        {
-	            /* we found it.  Match [i] = k for some row i has been done. */
-	            nmatch++ ;
-	        }
-	        else if (result == EMPTY)
-	        {
-	            /* augment gave up because of too much work, and no match found */
-	            work_limit_reached = TRUE ;
-	        }
-	    }
+		nmatch = 0 ;
+		work_limit_reached = FALSE ;
+		for (k = 0 ; k < ncol ; k++)
+		{
+			/* find an augmenting path to match some row i to column k */
+			result = augment (k, Ap, Ai, Match, Cheap, Flag, Istack, Jstack, Pstack,
+					work, maxwork) ;
+			if (result == TRUE)
+			{
+				/* we found it.  Match [i] = k for some row i has been done. */
+				nmatch++ ;
+			}
+			else if (result == EMPTY)
+			{
+				/* augment gave up because of too much work, and no match found */
+				work_limit_reached = TRUE ;
+			}
+		}
 
-	    /* ------------------------------------------------------------------ */
-	    /* return the Match, and the # of matches made */
-	    /* ------------------------------------------------------------------ */
+		/* ------------------------------------------------------------------ */
+		/* return the Match, and the # of matches made */
+		/* ------------------------------------------------------------------ */
 
-	    /* At this point, row i is matched to j = Match [i] if j >= 0.  i is an
-	     * unmatched row if Match [i] == EMPTY. */
+		/* At this point, row i is matched to j = Match [i] if j >= 0.  i is an
+		 * unmatched row if Match [i] == EMPTY. */
 
-	    if (work_limit_reached != 0)
-	    {
-	        /* return -1 if the work limit of maxwork*nnz(A) was reached */
-	        work = EMPTY ;
-	    }
+		if (work_limit_reached != 0)
+		{
+			/* return -1 if the work limit of maxwork*nnz(A) was reached */
+			work = EMPTY ;
+		}
 
-	    return (nmatch) ;
+		return (nmatch) ;
 	}
 
 }
