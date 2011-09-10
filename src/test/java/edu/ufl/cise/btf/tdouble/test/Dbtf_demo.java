@@ -25,6 +25,13 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
+import org.apache.commons.lang3.mutable.MutableDouble;
+import org.apache.commons.lang3.mutable.MutableInt;
+
+import static edu.ufl.cise.btf.tdouble.Dbtf_order.btf_order;
+import static edu.ufl.cise.btf.tdouble.Dbtf_strongcomp.btf_strongcomp;
+import static edu.ufl.cise.btf.tdouble.Dbtf_maxtrans.btf_maxtrans;
+
 import edu.ufl.cise.btf.tdouble.io.MatrixInfo;
 import edu.ufl.cise.btf.tdouble.io.MatrixSize;
 import edu.ufl.cise.btf.tdouble.io.MatrixVectorReader;
@@ -35,8 +42,12 @@ public class Dbtf_demo extends TestCase {
 
 	static final String WEST_0479 = "west0479.mtx";
 
-	public void btf_demo_test() {
+	int n;
+	int [] Ai, Ap;
 
+	protected void setUp() throws Exception {
+		int nnz;
+		double [] x ;
 		FileReader fileReader;
 		MatrixVectorReader reader;
 		MatrixInfo info;
@@ -50,13 +61,17 @@ public class Dbtf_demo extends TestCase {
 			info = reader.readMatrixInfo () ;
 			size = reader.readMatrixSize (info) ;
 
-			int nnz = size.numEntries () ;
-			int [] i = new int [nnz] ;
-			int [] p = new int [nnz] ;
-			double [] x ;
+			assertTrue("btf: A must be sparse, square, and non-empty",
+					size.isSquare() ) ;
 
+			n = size.numRows () ;
+			nnz = size.numEntries () ;
+
+			/* get sparse matrix A */
+			Ai = new int [nnz] ;
+			Ap = new int [nnz] ;
 			x = new double [nnz] ;
-			reader.readCoordinate (i, p, x) ;
+			reader.readCoordinate (Ai, Ap, x) ;
 
 		}
 		catch (FileNotFoundException e)
@@ -69,6 +84,72 @@ public class Dbtf_demo extends TestCase {
 			fail () ;
 			e.printStackTrace () ;
 		}
+
+		super.setUp();
+	}
+
+	public void btf_test() {
+		int maxwork, nblocks ;
+		int [] Q, P, R, Work ;
+		MutableDouble work = new MutableDouble () ;
+		MutableInt nmatch = new MutableInt () ;
+
+		/* get output arrays */
+		P = new int [n] ;
+		Q = new int [n] ;
+		R = new int [n+1] ;
+
+		/* get workspace */
+		Work = new int [5*n] ;
+
+		maxwork = 0 ;
+		work.setValue( 0 ) ;
+
+		/* find the permutation to BTF */
+		nblocks = btf_order (n, Ap, Ai, maxwork, work, P, Q, R, nmatch, Work) ;
+
+		// TODO BTF assertions
+	}
+
+	public void strongcomp_test() {
+
+		int nblocks ;
+		int [] Q, P, R, Work ;
+
+		/* get output arrays */
+		P = new int [n] ;
+		Q = null ;
+		R = new int [n+1] ;
+
+		/* get workspace of size 4n */
+		Work = new int [4*n] ;
+
+		/* find the strongly-connected components of A */
+		nblocks = btf_strongcomp (n, Ap, Ai, Q, P, R, Work) ;
+
+		// TODO strongcomp assertions
+	}
+
+	public void maxtrans_test() {
+
+		int maxwork, nmatch ;
+		int [] Work, Match ;
+		MutableDouble work = new MutableDouble () ;
+
+		/* get output array */
+		Match = new int [n] ;
+
+		/* get workspace of size 4n */
+		Work = new int [4*n] ;
+
+		maxwork = 0 ;
+		work.setValue( 0 ) ;
+
+		/* perform the maximum transversal */
+		nmatch = btf_maxtrans (n, n, Ap, Ai, maxwork, work, Match, Work) ;
+
+		// TODO maxtrans assertions
+
 	}
 
 }

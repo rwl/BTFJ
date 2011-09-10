@@ -21,6 +21,8 @@
 
 package edu.ufl.cise.btf.tdouble;
 
+import org.apache.commons.lang3.mutable.MutableDouble;
+
 /**
  * Finds a column permutation that maximizes the number of entries on the
  * diagonal of a sparse matrix.  See btf.h for more information.
@@ -158,7 +160,7 @@ public class Dbtf_maxtrans extends Dbtf_internal {
 	 */
 	public static int augment(int k, int[] Ap, int[] Ai, int[] Match,
 			int[] Cheap, int[] Flag, int[] Istack, int[] Jstack, int[] Pstack,
-		    double work, double maxwork)
+		    MutableDouble work, double maxwork)
 	{
 		/* local variables, but "global" to all DFS levels: */
 		int found ; /* true if match found.  */
@@ -226,7 +228,7 @@ public class Dbtf_maxtrans extends Dbtf_internal {
 			/* quick return if too much work done */
 			/* -------------------------------------------------------------- */
 
-			if (quick != 0 && work > maxwork)
+			if (quick != 0 && work.getValue() > maxwork)
 			{
 				/* too much work has been performed; abort the search */
 				return (EMPTY) ;
@@ -269,7 +271,7 @@ public class Dbtf_maxtrans extends Dbtf_internal {
 			/* determine how much work was just performed */
 			/* -------------------------------------------------------------- */
 
-			work += (p - pstart + 1) ;
+			work.add (p - pstart + 1) ;
 
 			/* -------------------------------------------------------------- */
 			/* node j is done, but the postwork is postponed - see below */
@@ -385,7 +387,7 @@ public class Dbtf_maxtrans extends Dbtf_internal {
 	 * @return # of columns in the matching
 	 */
 	public static int btf_maxtrans(int nrow, int ncol, int[] Ap, int[] Ai,
-		    double maxwork, double work, int[] Match, int[] Work)
+		    double maxwork, MutableDouble work, int[] Match, int[] Work)
 	{
 		int[] Cheap, Flag, Istack, Jstack, Pstack ;
 		int i, j, k, nmatch, work_limit_reached, result ;
@@ -396,16 +398,21 @@ public class Dbtf_maxtrans extends Dbtf_internal {
 
 		//Cheap  = Work ; Work += ncol ;
 		Cheap = new int [ncol] ;
+		//Cheap = Arrays.copyOfRange (Work, 0, ncol) ;
 		//Flag   = Work ; Work += ncol ;
 		Flag = new int [ncol] ;
+		//Flag = Arrays.copyOfRange (Work, ncol, 2 * ncol) ;
 
 		/* stack for non-recursive depth-first search in augment function */
 		//Istack = Work ; Work += ncol ;
 		Istack = new int [ncol] ;
+		//Istack = Arrays.copyOfRange (Work, 2 * ncol, 3 * ncol) ;
 		//Jstack = Work ; Work += ncol ;
 		Jstack = new int [ncol] ;
+		//Jstack = Arrays.copyOfRange (Work, 3 * ncol, 4 * ncol) ;
 		//Pstack = Work ;
 		Pstack = new int [ncol] ;
+		//Pstack = Arrays.copyOfRange (Work, 4 * ncol, 5 * ncol) ;
 
 		/* in column j, rows Ai [Ap [j] .. Cheap [j]-1] are known to be matched */
 		for (j = 0 ; j < ncol ; j++)
@@ -424,7 +431,7 @@ public class Dbtf_maxtrans extends Dbtf_internal {
 		{
 			maxwork *= Ap [ncol] ;
 		}
-		work = 0 ;
+		work.setValue (0) ;
 
 		/* ------------------------------------------------------------------ */
 		/* find a matching row for each column k */
@@ -459,7 +466,7 @@ public class Dbtf_maxtrans extends Dbtf_internal {
 		if (work_limit_reached != 0)
 		{
 			/* return -1 if the work limit of maxwork*nnz(A) was reached */
-			work = EMPTY ;
+			work.setValue (EMPTY) ;
 		}
 
 		return (nmatch) ;

@@ -21,6 +21,12 @@
 
 package edu.ufl.cise.btf.tdouble;
 
+import org.apache.commons.lang3.mutable.MutableDouble;
+import org.apache.commons.lang3.mutable.MutableInt;
+
+import static edu.ufl.cise.btf.tdouble.Dbtf_strongcomp.btf_strongcomp;
+import static edu.ufl.cise.btf.tdouble.Dbtf_maxtrans.btf_maxtrans;
+
 /**
  * Find a permutation P and Q to permute a square sparse matrix into upper block
  * triangular form.  A(P,Q) will contain a zero-free diagonal if A has
@@ -82,8 +88,9 @@ public class Dbtf_order extends Dbtf_internal {
 	 * @param Work size 5n
 	 * @return number of blocks found
 	 */
-	public static int btf_order(int n, int[] Ap, int[] Ai, double maxwork,
-		    double work, int[] P, int[] Q, int[] R, int nmatch, int[] Work)
+	public static int btf_order(final int n, final int[] Ap, final int[] Ai,
+			final double maxwork, MutableDouble work, int[] P, int[] Q, int[] R,
+			MutableInt nmatch, int[] Work)
 	{
 		int[] Flag ;
 		int nblocks, i, j, nbadcol ;
@@ -94,8 +101,7 @@ public class Dbtf_order extends Dbtf_internal {
 
 		/* if maxwork > 0, then a maximum matching might not be found */
 
-		nmatch = Dbtf_maxtrans.btf_maxtrans (n, n, Ap, Ai, maxwork, work, Q,
-				Work) ;
+		nmatch.setValue (btf_maxtrans (n, n, Ap, Ai, maxwork, work, Q, Work)) ;
 
 		/* ------------------------------------------------------------------ */
 		/* complete permutation if the matrix is structurally singular */
@@ -106,7 +112,7 @@ public class Dbtf_order extends Dbtf_internal {
 		 * diagonal as possible.
 		 */
 
-		if (nmatch < n)
+		if (nmatch.getValue() < n)
 		{
 			/* get a size-n work array */
 			//Flag = Work + n ;
@@ -138,7 +144,7 @@ public class Dbtf_order extends Dbtf_internal {
 					Work [nbadcol++] = j ;
 				}
 			}
-			ASSERT (nmatch + nbadcol == n) ;
+			ASSERT (nmatch.getValue() + nbadcol == n) ;
 
 			/* make an assignment for each unmatched row */
 			for (i = 0 ; i < n ; i++)
@@ -163,7 +169,7 @@ public class Dbtf_order extends Dbtf_internal {
 		/* find the strongly connected components */
 		/* ------------------------------------------------------------------ */
 
-		nblocks = Dbtf_strongcomp.btf_strongcomp (n, Ap, Ai, Q, P, R, Work) ;
+		nblocks = btf_strongcomp (n, Ap, Ai, Q, P, R, Work) ;
 		return (nblocks) ;
 	}
 
