@@ -21,9 +21,6 @@
 
 package edu.ufl.cise.btf.tdouble;
 
-import org.apache.commons.lang3.mutable.MutableDouble;
-import org.apache.commons.lang3.mutable.MutableInt;
-
 import static edu.ufl.cise.btf.tdouble.Dbtf_strongcomp.btf_strongcomp;
 import static edu.ufl.cise.btf.tdouble.Dbtf_maxtrans.btf_maxtrans;
 
@@ -80,19 +77,19 @@ public class Dbtf_order extends Dbtf_internal {
 	 * @param Ai size nz = Ap [n]
 	 * @param maxwork do at most maxwork*nnz(A) work in the maximum
 	 * transversal; no limit if <= 0
-	 * @param work work performed in maxtrans, or -1 if limit reached
+	 * @param work size 1, work performed in maxtrans, or -1 if limit reached
 	 * @param P size n, row permutation
 	 * @param Q size n, column permutation
 	 * @param R size n+1.  block b is in rows/cols R[b] ... R[b+1]-1
-	 * @param nmatch # nonzeros on diagonal of P*A*Q
-	 * @param Work size 5n
+	 * @param nmatch size 1, # nonzeros on diagonal of P*A*Q
 	 * @return number of blocks found
 	 */
 	public static int btf_order(final int n, final int[] Ap, final int[] Ai,
-			final double maxwork, MutableDouble work, int[] P, int[] Q, int[] R,
-			MutableInt nmatch, int[] Work)
+			final double maxwork, double[] work, int[] P, int[] Q, int[] R,
+			int[] nmatch)
 	{
 		int[] Flag ;
+		int[] Work ;
 		int nblocks, i, j, nbadcol ;
 
 		/* ------------------------------------------------------------------ */
@@ -101,7 +98,7 @@ public class Dbtf_order extends Dbtf_internal {
 
 		/* if maxwork > 0, then a maximum matching might not be found */
 
-		nmatch.setValue (btf_maxtrans (n, n, Ap, Ai, maxwork, work, Q, Work)) ;
+		nmatch[0] = btf_maxtrans (n, n, Ap, Ai, maxwork, work, Q) ;
 
 		/* ------------------------------------------------------------------ */
 		/* complete permutation if the matrix is structurally singular */
@@ -112,10 +109,10 @@ public class Dbtf_order extends Dbtf_internal {
 		 * diagonal as possible.
 		 */
 
-		if (nmatch.getValue() < n)
+		if (nmatch[0] < n)
 		{
-			/* get a size-n work array */
-			//Flag = Work + n ;
+			/* get size-n work arrays */
+			Work = new int [n] ;
 			Flag = new int [n] ;
 
 			for (j = 0 ; j < n ; j++)
@@ -144,7 +141,7 @@ public class Dbtf_order extends Dbtf_internal {
 					Work [nbadcol++] = j ;
 				}
 			}
-			ASSERT (nmatch.getValue() + nbadcol == n) ;
+			ASSERT (nmatch[0] + nbadcol == n) ;
 
 			/* make an assignment for each unmatched row */
 			for (i = 0 ; i < n ; i++)
@@ -169,7 +166,7 @@ public class Dbtf_order extends Dbtf_internal {
 		/* find the strongly connected components */
 		/* ------------------------------------------------------------------ */
 
-		nblocks = btf_strongcomp (n, Ap, Ai, Q, P, R, Work) ;
+		nblocks = btf_strongcomp (n, Ap, Ai, Q, P, R) ;
 		return (nblocks) ;
 	}
 

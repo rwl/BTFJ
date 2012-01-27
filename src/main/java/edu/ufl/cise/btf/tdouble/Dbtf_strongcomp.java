@@ -21,8 +21,6 @@
 
 package edu.ufl.cise.btf.tdouble;
 
-import org.apache.commons.lang3.mutable.MutableInt;
-
 /**
  * Finds the strongly connected components of a graph, or equivalently, permutes
  * the matrix into upper block triangular form.  See btf.h for more details.
@@ -84,14 +82,14 @@ public class Dbtf_strongcomp extends Dbtf_internal {
 	 * @param Time size n, Time [j] = "time" that node j was first visited
 	 * @param Flag size n, Flag [j]: see above
 	 * @param Low size n, Low [j]: see definition below
-	 * @param p_nblocks number of blocks (aka strongly-connected-comp.)
-	 * @param p_timestamp current "time"
+	 * @param p_nblocks size 1, number of blocks (aka strongly-connected-comp.)
+	 * @param p_timestamp size 1, current "time"
 	 * @param Cstack size n, output stack to hold nodes of components
 	 * @param Jstack size n, stack for the variable j
 	 * @param Pstack size n, stack for the variable p
 	 */
 	public static void dfs(int j, final int[] Ap, final int[] Ai, final int[] Q,
-			int[] Time, int[] Flag, int[] Low, MutableInt p_nblocks, MutableInt p_timestamp,
+			int[] Time, int[] Flag, int[] Low, int[] p_nblocks, int[] p_timestamp,
 			int[] Cstack, int[] Jstack, int[] Pstack)
 	{
 		/* ------------------------------------------------------------------ */
@@ -113,8 +111,8 @@ public class Dbtf_strongcomp extends Dbtf_internal {
 		/* the variables j and p are stacked in Jstack and Pstack */
 
 		/* local copies of variables in the calling routine */
-		int nblocks   = p_nblocks.getValue() ;
-		int timestamp = p_timestamp.getValue() ;
+		int nblocks   = p_nblocks[0] ;
+		int timestamp = p_timestamp[0] ;
 
 		/* ------------------------------------------------------------------ */
 		/* start a DFS at node j (same as the recursive call dfs (EMPTY, j)) */
@@ -226,8 +224,8 @@ public class Dbtf_strongcomp extends Dbtf_internal {
 		/* cleanup: update timestamp and nblocks */
 		/* ------------------------------------------------------------------ */
 
-		p_timestamp.setValue (timestamp) ;
-		p_nblocks.setValue (nblocks) ;
+		p_timestamp[0] = timestamp ;
+		p_nblocks[0] = nblocks ;
 	}
 
 	/**
@@ -260,15 +258,14 @@ public class Dbtf_strongcomp extends Dbtf_internal {
 	 * in permuted matrix.
 	 * @param R size n+1.  kth block is in rows/cols R[k] ... R[k+1]-1
 	 * of the permuted matrix.
-	 * @param Work size 4n
 	 * @return # of strongly connected components
 	 */
 	public static int btf_strongcomp(final int n, final int[] Ap, final int[] Ai,
-			int[] Q, int[] P, int[] R, int[] Work)
+			int[] Q, int[] P, int[] R)
 	{
 		int j, k, b ;
-		MutableInt timestamp = new MutableInt () ;
-		MutableInt nblocks = new MutableInt () ;
+		int[] timestamp = new int [1] ;
+		int[] nblocks = new int [1] ;
 		int[] Flag, Cstack, Time, Low, Jstack, Pstack ;
 
 		/* ------------------------------------------------------------------ */
@@ -298,18 +295,14 @@ public class Dbtf_strongcomp extends Dbtf_internal {
 		 * is used for both the recursive and non-recursive versions.
 		 */
 
-		//Time   = Work ; Work += n ;
 		Time   = new int [n] ;
-		//Flag   = Work ; Work += n ;
 		Flag   = new int [n] ;
 		Low    = P ;                /* use output array P as workspace for Low */
 		Cstack = R ;                /* use output array R as workspace for Cstack */
 
 		/* stack for non-recursive dfs */
-		//Jstack = Work ; Work += n ;     /* stack for j */
-		Jstack = new int [n] ;
-		//Pstack = Work ;                 /* stack for p */
-		Pstack = new int [n] ;
+		Jstack = new int [n] ;		/* stack for j */
+		Pstack = new int [n] ;		/* stack for p */
 
 		for (j = 0 ; j < n ; j++)
 		{
@@ -324,8 +317,8 @@ public class Dbtf_strongcomp extends Dbtf_internal {
 			Pstack [j] = EMPTY ;
 		}
 
-		timestamp.setValue (0) ;     /* each node given a timestamp when it is visited */
-		nblocks.setValue (0) ;       /* number of blocks found so far */
+		timestamp[0] = 0 ;     /* each node given a timestamp when it is visited */
+		nblocks[0] = 0 ;       /* number of blocks found so far */
 
 		/* ------------------------------------------------------------------ */
 		/* find the connected components via a depth-first-search */
@@ -335,7 +328,7 @@ public class Dbtf_strongcomp extends Dbtf_internal {
 		{
 			/* node j is unvisited or assigned to a block. Cstack is empty. */
 			ASSERT (Flag [j] == UNVISITED || (Flag [j] >= 0 &&
-					Flag [j] < nblocks.getValue()));
+					Flag [j] < nblocks[0]));
 			if (Flag [j] == UNVISITED)
 			{
 				/* non-recursive dfs (default) */
@@ -343,13 +336,13 @@ public class Dbtf_strongcomp extends Dbtf_internal {
 						Cstack, Jstack, Pstack) ;
 			}
 		}
-		ASSERT (timestamp.getValue() == n) ;
+		ASSERT (timestamp[0] == n) ;
 
 		/* ------------------------------------------------------------------ */
 		/* construct the block boundary array, R */
 		/* ------------------------------------------------------------------ */
 
-		for (b = 0 ; b < nblocks.getValue() ; b++)
+		for (b = 0 ; b < nblocks[0] ; b++)
 		{
 			R [b] = 0 ;
 		}
@@ -358,21 +351,21 @@ public class Dbtf_strongcomp extends Dbtf_internal {
 			/* node j has been assigned to block b = Flag [j] */
 			ASSERT (Time [j] > 0 && Time [j] <= n) ;
 			ASSERT (Low [j] > 0 && Low [j] <= n) ;
-			ASSERT (Flag [j] >= 0 && Flag [j] < nblocks.getValue()) ;
+			ASSERT (Flag [j] >= 0 && Flag [j] < nblocks[0]) ;
 			R [Flag [j]]++ ;
 		}
 		/* R [b] is now the number of nodes in block b.  Compute cumulative sum
 		 * of R, using Time [0 ... nblocks-1] as workspace. */
 		Time [0] = 0 ;
-		for (b = 1 ; b < nblocks.getValue() ; b++)
+		for (b = 1 ; b < nblocks[0] ; b++)
 		{
 			Time [b] = Time [b-1] + R [b-1] ;
 		}
-		for (b = 0 ; b < nblocks.getValue() ; b++)
+		for (b = 0 ; b < nblocks[0] ; b++)
 		{
 			R [b] = Time [b] ;
 		}
-		R [nblocks.getValue()] = n ;
+		R [nblocks[0]] = n ;
 
 		/* ------------------------------------------------------------------ */
 		/* construct the permutation, preserving the natural order */
@@ -483,7 +476,7 @@ public class Dbtf_strongcomp extends Dbtf_internal {
 		/* return # of blocks / # of strongly connected components */
 		/* ------------------------------------------------------------------ */
 
-		return (nblocks.getValue()) ;
+		return (nblocks[0]) ;
 	}
 
 }

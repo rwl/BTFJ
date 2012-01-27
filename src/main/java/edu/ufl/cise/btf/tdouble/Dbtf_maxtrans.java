@@ -21,8 +21,6 @@
 
 package edu.ufl.cise.btf.tdouble;
 
-import org.apache.commons.lang3.mutable.MutableDouble;
-
 /**
  * Finds a column permutation that maximizes the number of entries on the
  * diagonal of a sparse matrix.  See btf.h for more information.
@@ -154,13 +152,13 @@ public class Dbtf_maxtrans extends Dbtf_internal {
 	 * @param Istack size n.  Row index stack.
 	 * @param Jstack size n.  Column index stack.
 	 * @param Pstack size n.  Keeps track of position in adjacency list
-	 * @param work work performed by the depth-first-search
+	 * @param work size 1.  Work performed by the depth-first-search
 	 * @param maxwork maximum work allowed
 	 * @return
 	 */
 	public static int augment(int k, int[] Ap, int[] Ai, int[] Match,
 			int[] Cheap, int[] Flag, int[] Istack, int[] Jstack, int[] Pstack,
-		    MutableDouble work, double maxwork)
+		    double[] work, double maxwork)
 	{
 		/* local variables, but "global" to all DFS levels: */
 		int found ; /* true if match found.  */
@@ -228,7 +226,7 @@ public class Dbtf_maxtrans extends Dbtf_internal {
 			/* quick return if too much work done */
 			/* -------------------------------------------------------------- */
 
-			if (quick != 0 && work.getValue() > maxwork)
+			if (quick != 0 && work[0] > maxwork)
 			{
 				/* too much work has been performed; abort the search */
 				return (EMPTY) ;
@@ -271,7 +269,7 @@ public class Dbtf_maxtrans extends Dbtf_internal {
 			/* determine how much work was just performed */
 			/* -------------------------------------------------------------- */
 
-			work.add (p - pstart + 1) ;
+			work[0] += (p - pstart + 1) ;
 
 			/* -------------------------------------------------------------- */
 			/* node j is done, but the postwork is postponed - see below */
@@ -379,15 +377,14 @@ public class Dbtf_maxtrans extends Dbtf_internal {
 	 * @param Ai size nz = Ap [ncol]
 	 * @param maxwork do at most maxwork*nnz(A) work; no limit if <= 0. This
 	 * work limit excludes the O(nnz(A)) cheap-match phase.
-	 * @param work work = -1 if maxwork > 0 and the total work performed
+	 * @param work size 1, work = -1 if maxwork > 0 and the total work performed
 	 * reached the maximum of maxwork*nnz(A)).
 	 * Otherwise, work = the total work performed.
 	 * @param Match size nrow.  Match [i] = j if column j matched to row i
-	 * @param Work size 5*ncol
 	 * @return # of columns in the matching
 	 */
 	public static int btf_maxtrans(int nrow, int ncol, int[] Ap, int[] Ai,
-		    double maxwork, MutableDouble work, int[] Match, int[] Work)
+		    double maxwork, double[] work, int[] Match)
 	{
 		int[] Cheap, Flag, Istack, Jstack, Pstack ;
 		int i, j, k, nmatch, work_limit_reached, result ;
@@ -398,21 +395,12 @@ public class Dbtf_maxtrans extends Dbtf_internal {
 
 		//Cheap  = Work ; Work += ncol ;
 		Cheap = new int [ncol] ;
-		//Cheap = Arrays.copyOfRange (Work, 0, ncol) ;
-		//Flag   = Work ; Work += ncol ;
 		Flag = new int [ncol] ;
-		//Flag = Arrays.copyOfRange (Work, ncol, 2 * ncol) ;
 
 		/* stack for non-recursive depth-first search in augment function */
-		//Istack = Work ; Work += ncol ;
 		Istack = new int [ncol] ;
-		//Istack = Arrays.copyOfRange (Work, 2 * ncol, 3 * ncol) ;
-		//Jstack = Work ; Work += ncol ;
 		Jstack = new int [ncol] ;
-		//Jstack = Arrays.copyOfRange (Work, 3 * ncol, 4 * ncol) ;
-		//Pstack = Work ;
 		Pstack = new int [ncol] ;
-		//Pstack = Arrays.copyOfRange (Work, 4 * ncol, 5 * ncol) ;
 
 		/* in column j, rows Ai [Ap [j] .. Cheap [j]-1] are known to be matched */
 		for (j = 0 ; j < ncol ; j++)
@@ -431,7 +419,7 @@ public class Dbtf_maxtrans extends Dbtf_internal {
 		{
 			maxwork *= Ap [ncol] ;
 		}
-		work.setValue (0) ;
+		work[0] = 0 ;
 
 		/* ------------------------------------------------------------------ */
 		/* find a matching row for each column k */
@@ -466,7 +454,7 @@ public class Dbtf_maxtrans extends Dbtf_internal {
 		if (work_limit_reached != 0)
 		{
 			/* return -1 if the work limit of maxwork*nnz(A) was reached */
-			work.setValue (EMPTY) ;
+			work[0] = EMPTY ;
 		}
 
 		return (nmatch) ;
