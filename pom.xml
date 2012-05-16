@@ -3,6 +3,9 @@
   <groupId>com.github.rwl</groupId>
   <artifactId>BTFJ</artifactId>
   <version>1.0.1-SNAPSHOT</version>
+  <name>BTFJ</name>
+  <description>Permutes an unsymmetric matrix (square or rectangular) into its block upper triangular form.</description>
+  <url>http://github.com/rwl/BTFJ</url>
 
   <licenses>
     <license>
