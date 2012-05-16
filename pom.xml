@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.github.rwl</groupId>
   <artifactId>BTFJ</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1-SNAPSHOT</version>
 
   <licenses>
     <license>
@@ -16,7 +16,7 @@
     <url>git@github.com:rwl/BTFJ.git</url>
     <connection>scm:git:git@github.com:rwl/BTFJ.git</connection>
     <developerConnection>scm:git:git@github.com:rwl/BTFJ.git</developerConnection>
-    <tag>BTFJ-1.0.0</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <developers>
