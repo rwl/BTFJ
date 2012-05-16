@@ -13,9 +13,9 @@
   </licenses>
 
   <scm>
-    <url>git://github.com/rwl/BTFJ.git</url>
-    <connection>scm:git:git://github.com/rwl/BTFJ.git</connection>
-    <developerConnection>scm:git:git://github.com/rwl/BTFJ.git</developerConnection>
+    <url>git@github.com:rwl/BTFJ.git</url>
+    <connection>scm:git:git@github.com:rwl/BTFJ.git</connection>
+    <developerConnection>scm:git:git@github.com:rwl/BTFJ.git</developerConnection>
   </scm>
 
   <developers>
